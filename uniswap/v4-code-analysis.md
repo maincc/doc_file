@@ -388,14 +388,28 @@ function _swap(Pool.State storage pool, PoolId id, Pool.SwapParams memory params
 **swap：**  
 先检查交换金额是否为0，为0，触发还原并报错；再检测pool是否初始化；  
 先执行一下pool的交换前hook；然后进入_swap执行交换；再执行pool的交换后的hook；  
-最后根据前后hook是否影响pool，进行调整。  
+最后根据前后hook是否影响pool，如果影响根据hookDelta更新pool的state（余额）；最后根据swapDelta更新pool的状态（余额）。  
 **_swap：**  
 通过pool.swap更新得到BalanceDelta delta, uint256 amountToProtocol, uint24 swapFee, Pool.SwapResult memory result等结果：  
 delta：兑换后余额的变化。  
 amountToProtocol：本次动作的协议收取的费用。  
 swapFee：本次交易的费用。  
 result：本次兑换后的影响包含有关掉期结果的附加信息，例如更新的价格和流动性。
-最后更新任何协议收取的费用，确保准确跟踪协议的收入；发出交换事件。
+最后更新任何协议收取的费用，确保准确跟踪协议的收入；发出交换事件。  
+**pool.swap:**  
+swap核心代码，实现自动化做市商（AMM）的核心逻辑；  
+先获取pool的sqrtPriceLimitX96（价格平方根限制）、tick（刻度；当前价格区间的最小价格）、liquidity（当前流动性）;  
+如果beforeSwap产生了费用则根据protocolFee和lpFee更新swapFee;判断费用是否被swapFee耗尽；判断交换金额是否为0，为0则返回；  
+检查价格限制是否超出范围，超出则阻止交换继续进行；  
+根据zeroForOne获取feeGrowthGlobalX128（用于跟踪每单位流动性的累计总费用（即费用金额除以池的流动性）。）；  
+做一个循环直到要交换的额度（amountSpecifiedRemaining）为0以及sqrtPriceX96（价格平方根）到达sqrtPriceLimitX96：  
+1. 先获取tickNext，检测这个tickNext是否到达最小/大的tick；获取下一个tick里的sqrtPriceX96（sqrtPriceNextX96）；
+2. 根据先前获取的信息计算出result.sqrtPriceX96, step.amountIn, step.amountOut, step.feeAmount；
+3. 更新相关状态（amountSpecifiedRemaining、amountCalculated、protocolFee、liquidity）；
+4. 判断是否到达tickNext,如果到达则更新其相关信息，反之则重新计算但前tick；  
+
+交换完毕后，根据变化更新pool的state，计算出swapDelta。
+
 ***
 
 ```solidity
