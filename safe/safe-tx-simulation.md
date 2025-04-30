@@ -107,6 +107,8 @@ contracts：包含交易所涉及的合约的数据，包括合约的 ID、网�
 
 generated_access_list：包含交易将访问的地址和存储密钥列表，用于优化 Gas 成本。访问列表是以太坊 EIP-2930中引入的功能。
 
+注：通过主网获取相关合约的api以及相关数据，相当于模拟的时候在最新区块中构建一个虚拟区块，不影响主网，在下一次模拟还是最新区块（个人观点）。
+
 
 ## 其他关于交易安全部分
 对于Tenderly部分需要通过用户点击进行模拟，并给个url便于用户可视化查看。
@@ -116,3 +118,8 @@ https://safe.mirror.xyz/rInLWZwD_sf7enjoFerj6FIzCYmVMGrrV8Nhg4THdwI
 相关代码呈现
 https://github.com/safe-global/safe-wallet-monorepo/blob/dev/packages/utils/src/services/security/modules/BlockaidModule/index.ts#L87  
 根据代码指向的是Blockaid公司（官网：https://www.blockaid.io/）
+
+## 相关资料链接
+https://help.safe.global/en/articles/276343-how-to-perform-basic-transactions-checks-on-safe-wallet  
+https://docs.tenderly.co/simulations/asset-balance-changes  
+https://safe.mirror.xyz/rInLWZwD_sf7enjoFerj6FIzCYmVMGrrV8Nhg4THdwI
